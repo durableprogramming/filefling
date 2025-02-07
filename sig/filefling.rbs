@@ -1,0 +1,91 @@
+# typed: strict
+module Filefling
+  VERSION: String
+
+  class Error < StandardError
+  end
+
+  class ConfigurationError < Error
+  end
+
+  class UploadError < Error
+  end
+
+  class DownloadError < Error
+  end
+
+  class BucketError < Error
+  end
+
+  class CredentialsError < Error
+  end
+
+  class FileNotFoundError < Error
+  end
+
+  class InvalidParameterError < Error
+  end
+
+  class Config
+    DEFAULT_CONFIG: Hash[String, untyped]
+
+    attr_reader config_file_path: String
+    attr_reader bucket: String
+    attr_reader region: String
+    attr_reader expires: Integer
+    attr_reader prefix: String
+    attr_reader secret_access_key: String
+    attr_reader access_key_id: String
+
+    def self.load: -> Config
+
+    def initialize: (Hash[String, untyped] | Config | nil config) -> void
+    def load: -> Config
+    def aws_client: -> Aws::S3::Client
+    def aws_credentials: -> Aws::Credentials
+    def to_h: -> Hash[String, untyped]
+    def []: (String) -> untyped
+    def []=: (String, untyped) -> untyped
+
+    private
+    def load_config_file: (String) -> Hash[String, untyped]
+    def load_env_vars: -> Hash[String, untyped]
+    def validate_config!: (Hash[String, untyped]) -> void
+  end
+
+  class Uploader
+    def initialize: (Hash[String, untyped] | Config) -> void
+    def upload: (String file_path) -> Hash[Symbol, String]
+
+    private
+    def generate_key: (Pathname) -> String
+  end
+
+  class PresignedUrlGenerator
+    def initialize: (Hash[String, untyped] | Config) -> void
+    def generate_url: (String key, ?expires_in: Integer?) -> String
+    def generate_upload_url: (String key, ?expires_in: Integer?) -> String
+    def generate_delete_url: (String key, ?expires_in: Integer?) -> String
+  end
+
+  module CLI
+    class App < Thor
+      def self.load_commands: -> void
+      def self.start: (Array[String]) -> void
+    end
+
+    module Commands
+      class Upload < Thor::Group
+        def upload: -> void
+      end
+
+      class Delete < Thor::Group
+        def delete_file: -> void
+      end
+
+      class CreateBucket < Thor::Group
+        def create_bucket: -> void
+      end
+    end
+  end
+end
